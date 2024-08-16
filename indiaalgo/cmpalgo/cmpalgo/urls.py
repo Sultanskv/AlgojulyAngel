@@ -131,7 +131,6 @@ urlpatterns = [
     
     # path('place_ordermt4/', views.place_ordermt4, name='place_ordermt4'),
     # path('dash/', views.dash, name='dash'),
-    path('test_order/', views.test_order, name='test_order'),  
     path('client_trade_history/', views.client_trade_history, name='client_trade_history'),  
     # path('send-message/', views.send_message_form, name='send_message_form'),
     # path('send-message-action/', views.send_message_to_all_clients, name='send_message_to_all_clients'),

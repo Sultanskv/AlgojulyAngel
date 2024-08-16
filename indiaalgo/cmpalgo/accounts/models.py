@@ -197,6 +197,14 @@ class ind_clientDT(models.Model):
     telegram_chat_id = models.CharField(max_length=15, blank=True, null=True)
 
     paid_paln = models.BooleanField(default=True, blank=True, null=True)
+    OPTIONS = [
+        ('A', 'Alpha Wave'),
+        ('B', 'Beta Balance'),
+        ('C', 'Gamma Gains'),
+        ('D', 'Demograph'),
+    ]
+    
+    selected_option = models.CharField(max_length=1, choices=OPTIONS, default='A')
 
 '''from django.db import models
 

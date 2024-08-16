@@ -2645,103 +2645,6 @@ def get_symbol_token(api_client, symbol, strike_price, option_type):
         logger.error(f"Error in get_symbol_token: {str(e)}")
     return None
 
-
-
-
-
-# ------------------------------------------------------------------------
-# import requests
-# import pyotp
-# from django.http import JsonResponse
-# from .models import SYMBOL, ind_clientDT, Client_SYMBOL_QTY
-# from SmartApi import SmartConnect
-
-# def initialize_connection(client_id):
-#     try:
-#         # Fetch the client's credentials from the database
-#         client = ind_clientDT.objects.get(client_id=client_id)
-#         print(f"Fetched client: {client}")  # Debugging
-#     except ind_clientDT.DoesNotExist:
-#         print("Client does not exist")
-#         return None, None
-    
-#     api_key = client.api_key
-#     client_code = client.client_id
-#     password = client.password
-#     secret_key = client.secret_key
-
-#     print(f"API Key: {api_key}, Client Code: {client_code}, Password: {password}, Secret Key: {secret_key}")  # Debugging
-
-#     # Generate the latest TOTP using pyotp
-#     totp = pyotp.TOTP(secret_key).now()
-#     print(f"Generated TOTP: {totp}")  # Debugging
-
-#     # Initialize the SmartConnect object
-#     obj = SmartConnect(api_key=api_key)
-#     try:
-#         # Generate session with Angel One
-#         data = obj.generateSession(client_code, password, totp)
-#         print(f"Session Data: {data}")  # Debugging
-#         return obj, data['data']['refreshToken']
-#     except Exception as e:
-#         print(f"Error initializing connection: {e}")
-#         return None, None
-
-# def fetch_live_history(request):
-#     # client_id = request.GET.get('client_id')
-#     client_id = 1  # Example client_id, replace with dynamic value as needed
-#     if not client_id:
-#         return JsonResponse({"error": "Client ID is required"}, status=400)
-
-#     obj, refreshToken = initialize_connection(client_id)
-#     if not obj or not refreshToken:
-#         return JsonResponse({"error": "Failed to initialize connection. Please check your credentials and TOTP."})
-
-#     # Your Angel One API credentials and endpoint
-#     api_url = "https://apiconnect.angelbroking.com/rest/secure/angelbroking/order/v1/details/"
-#     headers = {
-#         "Content-Type": "application/json",
-#         "X-API-KEY": obj.api_key,
-#         "Authorization": f"Bearer {refreshToken}"
-#     }
-    
-#     # Example: fetch data for a specific order
-#     # Replace 'unique_order_id' with actual order ID
-#     unique_order_id = "240620101316475"
-#     response = requests.get(f"{api_url}{unique_order_id}", headers=headers)
-    
-#     if response.status_code == 200:
-#         try:
-#             data = response.json().get('data', {})
-#             # Parse the response data and transform it to match your table's structure
-#             live_data = [
-#                 {
-#                     "signal": data.get("signal", "-"),
-#                     "signalTime": data.get("updatetime", "-"),
-#                     "symbol": data.get("tradingsymbol", "-"),
-#                     "strat": "NEUTRON1",  # Example static value, replace as necessary
-#                     "type": data.get("transactiontype", "-"),
-#                     "quantity": data.get("quantity", "-"),
-#                     "entryPrice": data.get("price", "-"),
-#                     "exitPrice": data.get("averageprice", "-"),
-#                     "pnl": None,  # Placeholder, calculate P&L if possible
-#                     "cumulativePnL": None  # Placeholder, calculate cumulative P&L if possible
-#                 }
-#             ]
-#             return JsonResponse(live_data, safe=False)
-#         except ValueError:
-#             return JsonResponse({"error": "Failed to parse JSON response from Angel One API"}, status=500)
-#     else:
-#         return JsonResponse({"error": "Failed to fetch data from Angel One API", "status_code": response.status_code}, status=response.status_code)
-
-# trading/utils.py
-# trading/utils.py
-# accounts/utils.py
-
-
-
-
-
 # ====================== client_detail =========================
 
 def client_detail(request):
@@ -2765,12 +2668,6 @@ def edit_client(request, clint_id):
     else:
         form = ind_clientDTForm(instance=client)
     return render(request, 'edit_client.html', {'form': form})
-
-
-
-
-
-
 
 '''
 =====================================================================================================================================
@@ -2968,12 +2865,6 @@ def order_success(request):
 def order_failed(request):
     return render(request, 'order_failed.html')
 
-
-
-
-
-
-
 # ----------------------------------------------------------------------
 # stop_loss_script.py
   # Import the initialization function
@@ -3029,21 +2920,6 @@ def get_ltp(obj, symboltoken, tradingsymbol, exchange):
     except Exception as e:
         print(f"Error fetching LTP: {e}")
         return None
-
-
-# def get_valid_symbol_token(tradingsymbol, exchange='NFO'):
-#     try:
-#         # Assuming 'obj' is your SmartConnect object initialized with valid credentials
-#         symbol_data = obj.searchSymbol(exchange, tradingsymbol)
-#         for symbol in symbol_data:
-#             if symbol['tradingsymbol'] == tradingsymbol:
-#                 return symbol['symboltoken']
-#         return None
-#     except Exception as e:
-#         print(f"Error fetching symbol token: {e}")
-#         return None
-
-
 
 from .models import SYMBOL, ind_clientDT, OrderAngelOne
 
@@ -3399,59 +3275,6 @@ def get_ltp2(obj, symboltoken, SYMBOL_order, exchange):
     except Exception as e:
         print(f"Error fetching LTP: {e}")
         return None
-    
-    
-    
-        
-    
-    
-    
-    
-    
-# import schedule
-# import time
-# import requests
-# import logging
-
-# logging.basicConfig(level=logging.INFO)
-
-# def job():
-#     try:
-#         # Example: Place an SL limit order for Nifty options
-#         order_data = {
-#             'ticker': 'NIFTY23JUL17600CE',
-#             'transaction_type': 'BUY',
-#             'price': 150,
-#             'quantity': 75,
-#             'exchange': 'NFO'
-#         }
-#         response = requests.post('http://127.0.0.1:8000/place_sl_limit_order/', json=order_data)
-#         logging.info(f"SL Limit Order Response: {response.json()}")
-
-#         # Example: Place an SL market order for Bank Nifty options
-#         order_data = {
-#             'ticker': 'BANKNIFTY23JUL40000PE',
-#             'transaction_type': 'BUY',
-#             'price': 200,
-#             'quantity': 25,
-#             'exchange': 'NFO'
-#         }
-#         response = requests.post('http://127.0.0.1:8000/place_sl_market_order/', json=order_data)
-#         logging.info(f"SL Market Order Response: {response.json()}")
-
-#     except requests.exceptions.RequestException as e:
-#         logging.error(f"Error placing order: {e}")
-
-# schedule.every().day.at("09:15").do(job)  # Adjust the time as per your requirement
-
-# while True:
-#     schedule.run_pending()
-#     time.sleep(1)
-
-    
-
-
-
 
 # ====================================================================================
 # ==================================  MT4 panel =======================================
@@ -3502,6 +3325,22 @@ from django.http import HttpRequest
 #     fetch_and_save_data(request)
     
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+import logging
+from .models import ind_clientDT, Trade  # Adjust import according to your app structure
+
+logger = logging.getLogger(__name__)
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+import json
+import logging
+from .models import ind_clientDT, Trade
+
+logger = logging.getLogger(__name__)
+
 @csrf_exempt
 def receive_trade(request):
     logger.debug(f"Request method: {request.method}")
@@ -3520,50 +3359,26 @@ def receive_trade(request):
             symbol = data.get('symbol')
             price = data.get('price')
             lot_size = data.get('lot_size')
+            selected_option = data.get('selected_option')
 
-            if not trade_type or not symbol or price is None or lot_size is None:
+            if not trade_type or not symbol or price is None or lot_size is None or not selected_option:
                 logger.error("Missing required fields")
                 return JsonResponse({'status': 'fail', 'message': 'Missing required fields'}, status=400)
 
             # Save the trade to the database
-            trade = Trade(trade_type=trade_type, symbol=symbol, price=price)
+            trade = Trade(trade_type=trade_type, symbol=symbol, price=price, lot_size=lot_size)
             trade.save()
             
-            # Fetch the api_key and auth_token for all clients
-            client_users = ind_clientDT.objects.values('api_key', 'auth_token')
+            # Call place_order_all function to place orders for all clients with the selected option
+            return place_order_all(request, trade, trade_type, symbol, price, selected_option)
 
-            if not client_users:
-                logger.error("No client users found")
-                return JsonResponse({'status': 'fail', 'message': 'No client users found'}, status=400)
-
-            # Iterate over each client and transfer the trade
-            for client_user in client_users:
-                api_key = client_user['api_key']
-                auth_token = client_user['auth_token']
-                
-            #    transfer_trade_to_angel(trade, api_key, auth_token)
-
-            response = {
-                'status': 'success',
-                'data': {
-                    'trade_type': trade_type,
-                    'symbol': symbol,
-                    'price': price,
-                    'lot_size': lot_size
-                }
-            }
-
-
-            print('Trade data saved and transferred successfull and run place order all')
-            place_order_all(request, trade, trade_type, symbol, price)
-            logger.info("Trade data saved and transferred successfully")
-            return JsonResponse(response)
         except json.JSONDecodeError as e:
             logger.error(f"Invalid JSON: {e}")
             return JsonResponse({'status': 'fail', 'message': 'Invalid JSON'}, status=400)
     else:
         logger.error("Invalid request method")
         return JsonResponse({'status': 'fail', 'message': 'Invalid request'}, status=400)
+
 
 def get_symbol_token(symbol):
     symbol_token = SYMBOL.objects.get(SYMBOL_order = symbol)
@@ -3640,34 +3455,28 @@ def transfer_trade_to_angel(trade, api_key, auth_token):
     except Exception as e:
         logger.error(f"Error in transferring trade to Angel Broking: {str(e)}")
 
-from django.shortcuts import render
-
 from datetime import datetime
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from .models import Trade, ind_clientDT
 
 def trade_list(request):
-    if 'clint_id' in request.session:  # Ensures the user is logged in
+    if 'clint_id' in request.session:
         user_id = request.session.get('clint_id')
-        today = datetime.now().date()  # Gets today's date
+        today = datetime.now().date()
         client_user = ind_clientDT.objects.get(clint_id=user_id)
 
-        # Fetch trades for the logged-in client only
         trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today)
-
-        # Get the client's details
-        client = ind_clientDT.objects.filter(clint_id=user_id)
 
         dt = {
             'trades': trades,
             'client_user': client_user,
-            'client': client,
         }
         return render(request, 'trade_list.html', dt)
     else:
         messages.error(request, 'Please log in.')
         return redirect('/')
+
     
 from datetime import date
 from django.shortcuts import render, redirect
@@ -3678,40 +3487,16 @@ def client_trade_history(request):
         user_id = request.session.get('clint_id')
         client_user = ind_clientDT.objects.get(clint_id=user_id)
 
-        # Initialize funds as an empty string in case fetching funds fails
         funds = ""
-
-        # Optional: Display a message if available
         msg = request.GET.get('msg', None)
 
-        # If the user has provided API credentials, fetch funds
-        if client_user.api_key and client_user.auth_token:
-            api_key = client_user.api_key
-            auth_token = client_user.auth_token
-            obj = SmartConnect(api_key=api_key)
-            obj.setAccessToken(auth_token)
-
-            try:
-                fund_response = obj.rmsLimit()
-                print(fund_response)  # Debug: Print the fund response
-                if fund_response['status']:
-                    funds = fund_response['data']['net']
-                else:
-                    funds = f"Unable to fetch funds: {fund_response.get('message', 'Unknown error')}"
-            except Exception as e:
-                funds = f"Exception: {str(e)}"
-
+        # Fetch trades for the logged-in client
         today = date.today()
+        trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today).order_by('timestamp')
 
         trade_history = []
         cumulative_pnl = 0
         entry_trades = {}
-
-        # Fetch trades for the logged-in client
-        if client_user.paid_paln:
-            trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today).order_by('timestamp')
-        else:
-            trades = Trade.objects.filter(clint_id='DEMO', timestamp__date=today).order_by('timestamp')
 
         for trade in trades:
             if trade.trade_type in ['Long_Entry', 'Short_Entry']:
@@ -3757,33 +3542,6 @@ def client_trade_history(request):
     else:
         return redirect('/')
 
-
-
-from django.shortcuts import render, redirect
-from django.contrib import messages
-from datetime import datetime
-from .models import Trade, ind_clientDT
-
-# def trade_list(request):
-#     if 'clint_id' in request.session:
-#         user_id = request.session.get('clint_id')
-#         today = datetime.now().date()  # Gets today's date
-#         trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today)
-#         client_user = ind_clientDT.objects.get(clint_id=user_id)
-#         client = ind_clientDT.objects.filter(clint_id=user_id)
-#         dt = {
-#             'trades': trades,
-#             'client_user': client_user,
-#             'client': client,
-#         }
-#         return render(request, 'trade_list.html', dt)
-#     else:
-#         messages.error(request, 'Please log in.')
-#         return redirect('/')
-
-
-
-
 def trade_history(request):
     trades = Trade.objects.all().order_by('timestamp')
     trade_history = []
@@ -3828,60 +3586,36 @@ def trade_history(request):
     return render(request, 'trade_history.html', {'trade_history': trade_history, 'total_cumulative_pnl': cumulative_pnl})
 
 @csrf_exempt
-def place_order_all(request, trade, trade_type, symbol, price):
-    print('run all ')
+def place_order_all(request, trade, trade_type, symbol, price, selected_option):
+    print('Running place_order_all')
     try:
         symbol_obj = SYMBOL.objects.get(SYMBOL_order=symbol)
     except SYMBOL.DoesNotExist:
         logger.error(f"Symbol {symbol} does not exist")
         return JsonResponse({'status': 'fail', 'message': 'Invalid symbol'}, status=400)
 
-    clients = ind_clientDT.objects.filter(clint_plane='Live')
+    # Filter clients based on the selected option (A, B, C)
+    clients = ind_clientDT.objects.filter(clint_plane='Live', selected_option=selected_option)
+    
     for client in clients:
-        print(client.clint_name_first)
+        print(f"Processing client: {client.clint_name_first}")
         group = client.client_Group
         for group_symbol in group.symbols.all():
-            print(group_symbol)
+            print(f"Checking symbol: {group_symbol}")
             if str(group_symbol) == str(symbol_obj.SYMBOL):
-                print(group_symbol, '==', symbol_obj.SYMBOL)
+                print(f"Symbol match found: {group_symbol} == {symbol_obj.SYMBOL}")
                 symbol_qty = Client_SYMBOL_QTY.objects.filter(client_id=client.clint_id, SYMBOL=group_symbol).first()
                 if symbol_qty and symbol_qty.trade == 'on':
                     qty = symbol_qty.QUANTITY
-                    print('run next send_trade_to_angel_broking')
+                    print(f"Placing trade for client: {client.clint_name_first}, Qty: {qty}")
                     send_trade_to_angel_broking(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key, symbol_obj.SYMBOL)
                 else:
-                    logger.info(f"Trade is off for symbol: {symbol}")
+                    logger.info(f"Trade is off for symbol: {symbol} for client {client.clint_name_first}")
     return JsonResponse({'status': 'success', 'message': 'Orders placed for all clients'}, status=200)
-
-# @csrf_exempt
-# def place_order_all(request, trade, trade_type, symbol, price, selected_option):
-#     print('run all ')
-#     try:
-#         symbol_obj = SYMBOL.objects.get(SYMBOL_order=symbol)
-#     except SYMBOL.DoesNotExist:
-#         logger.error(f"Symbol {symbol} does not exist")
-#         return JsonResponse({'status': 'fail', 'message': 'Invalid symbol'}, status=400)
-
-#     clients = ind_clientDT.objects.filter(clint_plane='Live', client_option=selected_option)
-#     for client in clients:
-#         print(client.clint_name_first)
-#         group = client.client_Group
-#         for group_symbol in group.symbols.all():
-#             print(group_symbol)
-#             if str(group_symbol) == str(symbol_obj.SYMBOL):
-#                 print(group_symbol, '==', symbol_obj.SYMBOL)
-#                 symbol_qty = Client_SYMBOL_QTY.objects.filter(client_id=client.clint_id, SYMBOL=group_symbol).first()
-#                 if symbol_qty and symbol_qty.trade == 'on':
-#                     qty = symbol_qty.QUANTITY
-#                     print('run next send_trade_to_angel_broking')
-#                     send_trade_to_angel_broking(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key, symbol_obj.SYMBOL)
-#                 else:
-#                     logger.info(f"Trade is off for symbol: {symbol}")
-#     return JsonResponse({'status': 'success', 'message': 'Orders placed for selected clients'}, status=200)
-
 
 def send_trade_to_angel_broking(trade, trade_type, symbol, price, auth_token, qty, client_id, api_key, SYMBOL_m):
     try:
+        print(f"Setting up client for API Key: {api_key}")
         client = SmartConnect(api_key=api_key)
         client.setAccessToken(auth_token)
 
@@ -3910,9 +3644,10 @@ def send_trade_to_angel_broking(trade, trade_type, symbol, price, auth_token, qt
             "quantity": qty
         }
 
+        print(f"Order parameters: {order_params}")
         response = client.placeOrder(order_params)
         logger.debug(f"Order response: {response}")
-        print(f'response == {response}')
+        print(f"Order response: {response}")
 
         if response is not None:
             order_id = response.get('orderid', 'Unknown')
@@ -3951,12 +3686,12 @@ def send_trade_to_angel_broking(trade, trade_type, symbol, price, auth_token, qt
 
             logger.info(f"Trade and order details saved successfully. Order ID: {order_id}")
         else:
-            error_message = 'Unknown error'
+            error_message = response.get('message', 'Unknown error') if response else 'No response from API'
             logger.error(f"Failed to execute trade: {error_message}")
 
     except Exception as e:
         logger.error(f"Error in transferring trade to Angel Broking: {str(e)}")
-        print(e, '-------------------------send_trade_to_angel_broking--------------------------------')
+        print(f"Exception: {e} during send_trade_to_angel_broking")
 
         # Save trade data to Trade model even if an error occurs
         trade_record = Trade(
@@ -3970,138 +3705,9 @@ def send_trade_to_angel_broking(trade, trade_type, symbol, price, auth_token, qt
         )
         trade_record.save()
 
-
-# @csrf_exempt
-# def place_order_all(request, trade, trade_type, symbol, price):
-#     # try:
-#     #     symbol_obj = SYMBOL.objects.get(SYMBOL_order=symbol)
-#     # except SYMBOL.DoesNotExist:
-#     #     logger.error(f"Symbol {symbol} does not exist")
-#     #     return JsonResponse({'status': 'fail', 'message': 'Invalid symbol'}, status=400)
-
-#     clients = ind_clientDT.objects.filter(clint_plane='Live')
-#     for client in clients:
-#         group = client.client_Group
-#         for group_symbol in group.symbols.all():
-#             # if str(group_symbol) == str(symbol_obj.SYMBOL):
-#                 symbol_qty = Client_SYMBOL_QTY.objects.filter(client_id=client.clint_id, SYMBOL=group_symbol).first()
-#                 if symbol_qty and symbol_qty.trade == 'on':
-#                     qty = symbol_qty.QUANTITY
-#                     send_trade_to_angel_broking(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key)
-#                 else:
-#                     logger.info(f"Trade is off for symbol: {symbol}")
-#     return JsonResponse({'status': 'success', 'message': 'Orders placed for all clients'}, status=200)
-
-# def send_trade_to_angel_broking(trade, trade_type, symbol, price, auth_token, qty, client_id, api_key):
-#     try:
-#         client = SmartConnect(api_key=api_key)
-#         client.setAccessToken(auth_token)
-
-#         if trade_type in ['Long_Entry', 'Short_Entry']:
-#             order_type = 'BUY'
-#         elif trade_type in ['Long_Exit', 'Short_Exit']:
-#             order_type = 'SELL'
-#         else:
-#             order_type = 'SELL'
-
-#         symbol_token = get_symbol_token(symbol)
-#         # if not symbol_token:
-#         #     logger.error(f"Invalid symbol token for symbol: {symbol}")
-#         #     return
-
-#         order_params = {
-#             "variety": "NORMAL",
-#             "tradingsymbol": symbol,
-#             "symboltoken": symbol_token,
-#             "transactiontype": order_type,
-#             "exchange": "NFO",
-#             "ordertype": "MARKET",
-#             "producttype": "INTRADAY",
-#             "duration": "DAY",
-#             "price": price,
-#             "quantity": qty
-#         }
-
-#         response = client.placeOrder(order_params)
-#         print(response)
-#         logger.debug(f"Order response: {response}")
-
-#         if isinstance(response, str):
-#             try:
-#                 response = json.loads(response)
-#             except json.JSONDecodeError:
-#                 logger.error(f"Failed to parse response JSON: {response}")
-#                 return
-
-#         if isinstance(response, dict) and 'status' in response:
-#             if response['status']:
-#                 trade.status = 'executed'
-#                 trade.save()
-#                 logger.info(f"Trade executed successfully: {trade_type} {symbol} at {price}")
-#             else:
-#                 error_message = response.get('message', 'Unknown error')
-#                 logger.error(f"Failed to execute trade: {error_message}")
-#         else:
-#             logger.error(f"Unexpected response format: {response}")
-#     except Exception as e:
-#         print(e,'-------------------------send_trade_to_angel_broking--------------------------------')
-#         logger.error(f"Error in transferring trade to Angel Broking: {str(e)}")
-
-    
-    
-
-
-def test_order(request):
-    trade = None  # Replace with your trade object
-    trade_type = 'Long_Entry'
-    symbol = 'BANKNIFTY24JUL2451600CE'
-    price = 259.95
-    auth_token = 'your_auth_token'
-    qty = 45
-    # Place the order and capture the response
-    order_response = place_order_all(request, trade, trade_type, symbol, price)
-
-    # Return the response as a JSON response
-    return order_response
-
-
-
-
-# def client_status_admin(request):
-#     if 'admin_id' in request.session:
-#         admin_id = request.session.get('admin_id')
-#         client = ind_clientDT.objects.all()
-#     #  return render(request,'client_status.html',{'client':client})
-#         return render(request,'admin/client_status_admin.html',{'client':client})
-#     else:
-#         return redirect('/ind_admin/?msg=Login')
-
-
-# def subadmin_list(request):
-#     if 'admin_id' in request.session:
-#         subadmins = ind_subadminDT.objects.all()
-#         return render(request, 'admin/subadmin_list.html', {'subadmins': subadmins})    
-#     else:
-#         return redirect('/ind_admin/?msg=Login')
-
-
-# def subadmin_create(request):
-#     if 'admin_id' in request.session:
-#         if request.method == 'POST':
-#             form = SubadminForm(request.POST)
-#             if form.is_valid():
-#                 form.save()
-#                 return redirect('subadmin_list')
-#         else:
-#             form = SubadminForm()
-
-#         return render(request, 'admin/subadmin_form.html', {'form': form}) 
-#     else:
-#         return redirect('/ind_admin/?msg=Login')    
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
-  
-    
+
 def homes(request):
     if 'clint_id' in request.session:
         user_id = request.session.get('clint_id')
@@ -4190,80 +3796,6 @@ def homes(request):
     else:
         messages.error(request, 'Please Login')
         return redirect('/')
-    
-
-
-# def HOME(request):
-#     if 'clint_id' in request.session:
-#         user_id = request.session.get('clint_id')
-#         client_user = ind_clientDT.objects.get(clint_id=user_id)
-#         client = ind_clientDT.objects.filter(clint_id = user_id)
-#         api_key = client_user.api_key
-#         auth_token = client_user.auth_token
-#         refresh_token = client_user.refresh_token
-
-#         if not auth_token or not api_key or not refresh_token:
-#             return redirect('redirect_to_smartapi_login')
-
-#         obj = SmartConnect(api_key=api_key)
-#         obj.setAccessToken(auth_token)
-        
-#         try:
-#             # Use the getRMS method to fetch fund data
-#             fund_response = obj.rmsLimit()
-#             print(fund_response)  # Debug: Print the fund response
-#             if fund_response['status'] == True:
-#                 funds = fund_response['data']['net']
-#             else:
-#                 funds = f"Unable to fetch funds: {fund_response.get('message', 'Unknown error')}"
-#         except Exception as e:
-#             funds = f"Exception: {str(e)}"
-
-#         trades = Trade.objects.all().order_by('timestamp')
-#         profitable_trades = 0
-#         loss_trades = 0
-#         total_cumulative_pnl = 0
-#         total_trades = 0
-
-#         entry_trades = {}
-
-#         for trade in trades:
-#             if trade.trade_type in ['Long_Entry', 'Short_Entry']:
-#                 entry_trades[trade.symbol] = trade
-#             elif trade.trade_type in ['Long_Exit', 'Short_Exit']:
-#                 entry_trade = entry_trades.pop(trade.symbol, None)
-#                 if entry_trade:
-#                     if trade.price is not None and entry_trade.price is not None and trade.lot_size is not None:
-#                         if trade.trade_type == 'Long_Exit':
-#                             pnl = (trade.price - entry_trade.price) * trade.lot_size
-#                         else:
-#                             pnl = (entry_trade.price - trade.price) * trade.lot_size
-#                         total_cumulative_pnl += pnl
-
-#                         if pnl > 0:
-#                             profitable_trades += 1
-#                         elif pnl < 0:
-#                             loss_trades += 1
-
-#                         total_trades += 1
-
-#         trade_accuracy = (profitable_trades / total_trades) * 100 if total_trades > 0 else 0
-
-#         dt = {
-#             'profitable_trades': profitable_trades,
-#             'loss_trades': loss_trades,
-#             'total_cumulative_pnl': total_cumulative_pnl,
-#             'trade_accuracy': trade_accuracy,
-#             'funds': funds,
-#             'client_user':client_user
-#         }
-
-#         return render(request, 'HOME.html', dt)
-#     else:
-#         messages.error(request, 'Pls Login')
-#         return redirect('/') 
-    
-
 
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
@@ -4285,10 +3817,6 @@ def get_notifications(request):
     data = [{'message': n.message, 'created_at': n.created_at} for n in notifications]
     return JsonResponse(data, safe=False)
 
-
-
-    
-    
     
 # -------------------------------------client side --------------------------------------------    
 
