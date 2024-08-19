@@ -2676,21 +2676,94 @@ def edit_client(request, clint_id):
 =====================================================================================================================================
 '''
 
+# from django.shortcuts import render, redirect
+# from django.http import HttpResponse
+# from urllib.parse import urlparse, parse_qs
+# from SmartApi import SmartConnect
+# from django.shortcuts import redirect, HttpResponse
+# from urllib.parse import urlparse, parse_qs
+
+
+# # Initial redirect to SmartAPI login
+# def redirect_to_smartapi_login(request):
+#     user_id = request.session.get('clint_id')
+#     client_user = ind_clientDT.objects.get(clint_id=user_id)
+#     api_key = client_user.api_key # Replace with your actual API key
+#     redirect_url = f"https://smartapi.angelbroking.com/publisher-login?api_key={api_key}"
+#     return redirect(redirect_url)
+
+# from django.shortcuts import get_object_or_404
+# def handle_smartapi_redirect(request):
+#     if 'clint_id' in request.session:
+#         user_id = request.session.get('clint_id')
+#         client_user = ind_clientDT.objects.get(clint_id=user_id)
+#         full_url = request.build_absolute_uri()
+#         # Parse the URL and extract query parameters
+#         parsed_url = urlparse(full_url)
+#         query_params = parse_qs(parsed_url.query)
+         
+#         auth_token = query_params.get('auth_token', [None])[0]
+#         feed_token = query_params.get('feed_token', [None])[0]
+#         refresh_token = query_params.get('refresh_token', [None])[0]
+        
+#         if client_user.Term_condition == True:
+#             if auth_token and feed_token and refresh_token:
+#                 # Get the client record
+#                 client = client_user #get_object_or_404(ind_clientDT, clint_id=client_id)
+
+#                 # Save the tokens in the client record
+#                 client.clint_plane = 'Live'
+#                 client.auth_token = auth_token
+#                 client.feed_token = feed_token
+#                 client.refresh_token = refresh_token
+#                 client.save()
+#                 update_login_info(request,user_id)
+#             # return HttpResponse('done')
+#                 # Redirect to dashboard or any other desired page
+#                 return redirect('/home/')  # Replace 'dashboard' with your actual dashboard URL name
+#             else:
+#                 update_login_info(request,user_id)
+#                 return HttpResponse("Login failed", status=401)
+#         else:
+#             messages.error(request, "Please accept term and condition")
+#             return redirect('/home/')      
+#     else:
+#         messages.error(request, 'Pls Login')
+#         return redirect('/') 
+ 
+
+def redirect_to_smartapi_login(request):
+    user_id = request.session.get('clint_id')
+    client_user = ind_clientDT.objects.get(clint_id=user_id)
+ #   api_key = client_user.api_key # Replace with your actual API key
+   # Get today's date
+    today = datetime.now().date()
+    if client_user.Term_condition == True:
+            broker_name = client_user.broker.broker_name if client_user.broker else None
+            if broker_name == 'Angel One':
+                api_key = client_user.api_key  # Get Angel One API key 
+                redirect_url = f"https://smartapi.angelbroking.com/publisher-login?api_key={api_key}"
+                return redirect(redirect_url)
+            elif broker_name == 'Alice Blue':
+                appcode = client_user.app_id  # Get Alice Blue App Code
+                redirect_url = f"https://ant.aliceblueonline.com/?appcode={appcode}"
+                return redirect(redirect_url)
+            elif broker_name == 'Upstox':
+                appcode = client_user.api_key  # Get Alice Blue App Code
+                redirect_url = f"https://api.upstox.com/index/dialog/authorize?api_key={api_key}"
+                return redirect(redirect_url)
+            else:
+                return redirect('/home/')
+    else:
+        return redirect('/home/')   
+
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
 from urllib.parse import urlparse, parse_qs
 from SmartApi import SmartConnect
 from django.shortcuts import redirect, HttpResponse
 from urllib.parse import urlparse, parse_qs
-
-
-# Initial redirect to SmartAPI login
-def redirect_to_smartapi_login(request):
-    user_id = request.session.get('clint_id')
-    client_user = ind_clientDT.objects.get(clint_id=user_id)
-    api_key = client_user.api_key # Replace with your actual API key
-    redirect_url = f"https://smartapi.angelbroking.com/publisher-login?api_key={api_key}"
-    return redirect(redirect_url)
+from alice_blue import AliceBlue
 
 from django.shortcuts import get_object_or_404
 def handle_smartapi_redirect(request):
@@ -2701,36 +2774,87 @@ def handle_smartapi_redirect(request):
         # Parse the URL and extract query parameters
         parsed_url = urlparse(full_url)
         query_params = parse_qs(parsed_url.query)
-         
-        auth_token = query_params.get('auth_token', [None])[0]
-        feed_token = query_params.get('feed_token', [None])[0]
-        refresh_token = query_params.get('refresh_token', [None])[0]
         
-        if client_user.Term_condition == True:
-            if auth_token and feed_token and refresh_token:
-                # Get the client record
-                client = client_user #get_object_or_404(ind_clientDT, clint_id=client_id)
+        if str(client_user.broker) == 'Angel One':
+            auth_token = query_params.get('auth_token', [None])[0]
+            feed_token = query_params.get('feed_token', [None])[0]
+            refresh_token = query_params.get('refresh_token', [None])[0]
+            if client_user.Term_condition == True:
+                if auth_token and feed_token and refresh_token:
+                    
+                    # Get the client record
+                    client = ind_clientDT.objects.get(clint_id=user_id)
 
-                # Save the tokens in the client record
+                    # Save the tokens in the client record
+                    client.clint_plane = 'Live'
+                    client.auth_token = auth_token
+                    client.feed_token = feed_token
+                    client.refresh_token = refresh_token
+                    client.save()
+                    update_login_info(request,user_id)
+                # return HttpResponse('done')
+                    # Redirect to dashboard or any other desired page
+                    return redirect('/home/')  # Replace 'dashboard' with your actual dashboard URL name
+                
+                else:
+                    update_login_info(request,user_id)
+                    return redirect('/home/') 
+        elif str(client_user.broker) == 'Alice Blue':
+           
+            if 'authCode' in query_params:
+                authCode =  query_params['authCode'][0]
+               
+                enc_key = query_params.get('encKey', [None])[0]  # Assume you get encKey in response
+                
+                # if enc_key:
+                #   session_id = generate_session_id(user_id, client_user.api_key, enc_key)
+                print(enc_key)
+                client = ind_clientDT.objects.get(clint_id=user_id)
+                        # Save the tokens in the client record
                 client.clint_plane = 'Live'
-                client.auth_token = auth_token
-                client.feed_token = feed_token
-                client.refresh_token = refresh_token
+                client.auth_token = authCode
+            #   client.feed_token = ''
+            #   client.refresh_token = ''
                 client.save()
                 update_login_info(request,user_id)
-            # return HttpResponse('done')
-                # Redirect to dashboard or any other desired page
-                return redirect('/home/')  # Replace 'dashboard' with your actual dashboard URL name
+                    # Save session ID or perform further actions as needed
+                return redirect('/dashbord/')  # Replace 'dashboard' with your actual dashboard URL name
             else:
                 update_login_info(request,user_id)
-                return HttpResponse("Login failed", status=401)
+                return redirect('/dashbord/') 
+             
+        elif str(client_user.broker) == 'Upstox':
+           
+            if 'authCode' in query_params:
+                authCode =  query_params['authCode'][0]
+               
+                enc_key = query_params.get('encKey', [None])[0]  # Assume you get encKey in response
+                
+                # if enc_key:
+                #   session_id = generate_session_id(user_id, client_user.api_key, enc_key)
+                print(enc_key)
+                client = ind_clientDT.objects.get(clint_id=user_id)
+                        # Save the tokens in the client record
+                client.clint_plane = 'Live'
+                client.auth_token = authCode
+            #   client.feed_token = ''
+            #   client.refresh_token = ''
+                client.save()
+                update_login_info(request,user_id)
+                    # Save session ID or perform further actions as needed
+                return redirect('/dashbord/')  # Replace 'dashboard' with your actual dashboard URL name
+            else:
+                update_login_info(request,user_id)
+                return redirect('/dashbord/')     
+
+       
         else:
             messages.error(request, "Please accept term and condition")
-            return redirect('/home/')      
+            return redirect('/dashbord/')    
     else:
         messages.error(request, 'Pls Login')
-        return redirect('/') 
- 
+        return redirect('/')
+
 import logging
 logger = logging.getLogger(__name__)
 
@@ -3585,33 +3709,92 @@ def trade_history(request):
 
     return render(request, 'trade_history.html', {'trade_history': trade_history, 'total_cumulative_pnl': cumulative_pnl})
 
+# @csrf_exempt
+# def place_order_all(request, trade, trade_type, symbol, price, selected_option):
+#     print('Running place_order_all')
+#     try:
+#         symbol_obj = SYMBOL.objects.get(SYMBOL_order=symbol)
+#     except SYMBOL.DoesNotExist:
+#         logger.error(f"Symbol {symbol} does not exist")
+#         return JsonResponse({'status': 'fail', 'message': 'Invalid symbol'}, status=400)
+
+#     # Filter clients based on the selected option (A, B, C)
+#     clients = ind_clientDT.objects.filter(clint_plane='Live', selected_option=selected_option)
+    
+#     for client in clients:
+#         print(f"Processing client: {client.clint_name_first}")
+#         group = client.client_Group
+#         for group_symbol in group.symbols.all():
+#             print(f"Checking symbol: {group_symbol}")
+#             if str(group_symbol) == str(symbol_obj.SYMBOL):
+#                 print(f"Symbol match found: {group_symbol} == {symbol_obj.SYMBOL}")
+#                 symbol_qty = Client_SYMBOL_QTY.objects.filter(client_id=client.clint_id, SYMBOL=group_symbol).first()
+#                 if symbol_qty and symbol_qty.trade == 'on':
+#                     qty = symbol_qty.QUANTITY
+#                     print(f"Placing trade for client: {client.clint_name_first}, Qty: {qty}")
+#                     send_trade_to_angel_broking(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key, symbol_obj.SYMBOL)
+#                 else:
+#                     logger.info(f"Trade is off for symbol: {symbol} for client {client.clint_name_first}")
+#     return JsonResponse({'status': 'success', 'message': 'Orders placed for all clients'}, status=200)
+
 @csrf_exempt
-def place_order_all(request, trade, trade_type, symbol, price, selected_option):
-    print('Running place_order_all')
+def place_order_all(request, trade, trade_type, symbol, price ,selected_option):
+    print('run all ')
     try:
         symbol_obj = SYMBOL.objects.get(SYMBOL_order=symbol)
     except SYMBOL.DoesNotExist:
         logger.error(f"Symbol {symbol} does not exist")
         return JsonResponse({'status': 'fail', 'message': 'Invalid symbol'}, status=400)
 
-    # Filter clients based on the selected option (A, B, C)
+  #  clients = ind_clientDT.objects.filter(clint_plane='Live')
+    # clients = ind_clientDT.objects.all()
     clients = ind_clientDT.objects.filter(clint_plane='Live', selected_option=selected_option)
-    
     for client in clients:
-        print(f"Processing client: {client.clint_name_first}")
-        group = client.client_Group
-        for group_symbol in group.symbols.all():
-            print(f"Checking symbol: {group_symbol}")
-            if str(group_symbol) == str(symbol_obj.SYMBOL):
-                print(f"Symbol match found: {group_symbol} == {symbol_obj.SYMBOL}")
-                symbol_qty = Client_SYMBOL_QTY.objects.filter(client_id=client.clint_id, SYMBOL=group_symbol).first()
-                if symbol_qty and symbol_qty.trade == 'on':
-                    qty = symbol_qty.QUANTITY
-                    print(f"Placing trade for client: {client.clint_name_first}, Qty: {qty}")
-                    send_trade_to_angel_broking(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key, symbol_obj.SYMBOL)
-                else:
-                    logger.info(f"Trade is off for symbol: {symbol} for client {client.clint_name_first}")
+        if client.clint_plane == 'Live':
+            group = client.client_Group
+            for group_symbol in group.symbols.all():
+                print(group_symbol)
+                if str(group_symbol) == str(symbol_obj.SYMBOL):
+                    symbol_qty = Client_SYMBOL_QTY.objects.filter(client_id=client.clint_id, SYMBOL=group_symbol).first()
+                    if symbol_qty and symbol_qty.trade == 'on':
+                        qty = symbol_qty.QUANTITY
+                        broker_name = client.broker.broker_name
+                        print('run next send_trade_to_angel_broking')
+                        # Check if broker is Angel One or Alice Blue and place order accordingly
+                        if broker_name == 'Angel One':
+                            send_trade_to_angel_broking(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key , symbol_obj.SYMBOL )
+                        elif broker_name == 'Alice Blue':
+                            send_trade_to_alice_blue(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key , symbol_obj.SYMBOL)
+                        # Add more brokers as needed
+                    else:
+                        logger.info(f"Trade is off for symbol: {symbol}")
+
+        else:
+            group = client.client_Group
+            for group_symbol in group.symbols.all():
+                print(group_symbol)
+                if str(group_symbol) == str(symbol_obj.SYMBOL):
+                    symbol_qty = Client_SYMBOL_QTY.objects.filter(client_id=client.clint_id, SYMBOL=group_symbol).first()
+                    if symbol_qty and symbol_qty.trade == 'on':
+                        qty = symbol_qty.QUANTITY
+                        order_type = 'BUY' if trade_type in ['Long_Entry', 'Short_Entry'] else 'SELL'
+                        order_angel = OrderAngelOne(
+                            clint=client.clint_id,
+                            symbol=symbol_obj.SYMBOL,
+                            tradingsymbol=symbol,
+                            symboltoken=symbol_obj.symbol_token,
+                            transaction_type=order_type,
+                            order_type="MARKET",
+                            quantity=qty,
+                            segment_type="NFO",
+                            squareoff=0,  # Set this appropriately if you have this data
+                            stoploss=0,   # Set this appropriately if you have this data
+                            price=price,
+                            order_id='miss thred'
+                        )
+                        order_angel.save()                
     return JsonResponse({'status': 'success', 'message': 'Orders placed for all clients'}, status=200)
+
 
 def send_trade_to_angel_broking(trade, trade_type, symbol, price, auth_token, qty, client_id, api_key, SYMBOL_m):
     try:
@@ -3705,8 +3888,258 @@ def send_trade_to_angel_broking(trade, trade_type, symbol, price, auth_token, qt
         )
         trade_record.save()
 
+# Initialize Alice Blue API Client
+'''======================================================================================================='''
+
+'-----------------------------------send_trade_to_AliceBlue_broking--------------------------------'
+
+'''======================================================================================================='''
+
+
+import hashlib
+import logging
+import requests
+from django.http import HttpResponse
+
+# logging.basicConfig(level=logging.INFO)
+
+def get_session_id(user_id, auth_code, app_id, secret_key):
+    """Get Session ID using auth_code, user_id, app_id, and secret_key."""
+    url = f"https://ant.aliceblueonline.com/rest/AliceBlueAPIService/sso/getUserDetails"
+    checksum = hashlib.sha256(f"{user_id}{auth_code}{secret_key}".encode()).hexdigest()
+    headers = {
+        "Content-Type": "application/json",
+    }
+    data = {
+        "checkSum": checksum
+    }
+    response = requests.post(url, headers=headers, json=data)
+    if response.status_code == 200:
+        session_id = response.json().get('userSession')
+        logging.info(f"Session ID obtained: {session_id}")
+        return session_id
+    else:
+        logging.error(f"Failed to obtain session ID: {response.text}")
+        return None
+    
+def send_trade_to_alice_blue(trade, trade_type, symbol, price, auth_token, qty, client_id, api_key, SYMBOL_m):
+    client = ind_clientDT.objects.get(clint_id = client_id )
+    user_id = client.user_id #'1310221'  # Your user ID
+    print(user_id,'--user_id---')
+    app_id = client.app_id  #'qsDEYtSXAjgYrxn'  # Your app ID
+    print(app_id,'--app_id---')
+    auth_code = client.auth_token  #'WQDNYYL6BMIFE1PW6WL6'  # Manually obtained auth code
+    print(auth_code,'--auth_code---')
+    secret_key = client.secret_key  #'HZfTjyeHBetvUlxOoQNbcCSmLBEBaTOsuMWXYuGJEGjpAefJhFlvKsOGCaIQHAyPZvzkPvcEqzeSIKcbzjESgmmcjXLsFDPgHSfh'  # Your secret key
+    print(secret_key,'--secret_key---')
+    
+    session_id = get_session_id(user_id, auth_code, app_id, secret_key)
+    print('session_id =', session_id)
+
+    trading_symbol = symbol
+    quntity = qty 
+    prices = price
+
+    if trade_type in ['Long_Entry', 'Short_Entry']:
+        transtype = 'BUY'
+    elif trade_type in ['Long_Exit', 'Short_Exit']:
+        transtype = 'SELL'
+    else:
+        transtype = 'SELL'
+
+    if session_id:
+        order_response = place_alice_blue(user_id, session_id , trading_symbol , quntity , prices ,transtype )
+        print('order_response =', order_response)
+        if order_response:
+            logger.info(f"Trade and order details saved successfully. Order ID: {order_response}")
+            order_response = [{'stat': 'Ok', 'NOrdNo': '24081700000035'}]
+            order_no = order_response[0]['NOrdNo']
+            
+            # Save trade data to Trade model
+            trade_record = Trade(
+                trade_type=trade_type,
+                symbol=symbol,
+                price=price,
+                lot_size=qty,
+                status="Executed",
+                clint_id=client_id,
+                order_id=order_no
+            )
+            trade_record.save()
+
+            # Save order details to OrderAngelOne model
+            order_angel = OrderAngelOne(
+                clint=client_id,
+                symbol=SYMBOL_m,
+                tradingsymbol=symbol,
+                symboltoken=get_symbol_token(trading_symbol),
+                transaction_type=transtype,
+                order_type="MARKET",
+                quantity=qty,
+                segment_type="NFO",
+                squareoff=0,  # Set this appropriately if you have this data
+                stoploss=0,   # Set this appropriately if you have this data
+                price=price,
+                order_id=order_no
+            )
+            order_angel.save()    
+
+        else:
+         #   error_message = order_response.get('message', 'Unknown error')
+            logger.error(f"Order placement failed")
+          #  return HttpResponse('Order placement failed')
+    else:
+        # error_message = order_response.get('message', 'Unknown error')
+        logger.error(f"Failed to obtain session ID")
+      #  return HttpResponse('Failed to obtain session ID')
+        
+
+def place_alice_blue(user_id, session_id , trading_symbol , quntity , prices ,transtype):
+    """Place an order using the Alice Blue API."""
+    symbol_id = get_symbol_token(trading_symbol)
+    # Base URL for Alice Blue API
+    base_url = "https://ant.aliceblueonline.com/rest/AliceBlueAPIService"
+    # Specific endpoint for placing an order
+    endpoint = "/api/placeOrder/executePlaceOrder"
+
+    # Full URL for the API request
+    url = f"{base_url}{endpoint}"
+
+    # JSON payload containing the order details
+    payload = json.dumps([
+    {
+        "complexty": "regular",         # Complexity of the order (e.g., "regular")
+        "discqty": "0",                 # Disclosed quantity (optional, set to "0" if not required)
+        "exch": "NFO",                  # Exchange (e.g., "NSE")
+        "pCode": "MIS",                 # Product code (e.g., "MIS" for intraday)
+        "prctyp": "L",                  # Price type (e.g., "L" for limit order)
+        "price": prices,             # Price at which the order should be placed
+        "qty": quntity,                       # Quantity of the order
+        "ret": "DAY",                   # Validity of the order (e.g., "DAY")
+        "symbol_id": symbol_id,             # Symbol ID (should be fetched from the API for the specific stock)
+        "trading_symbol": trading_symbol,# Trading symbol (e.g., "ASHOKLEY-EQ")
+        "transtype": transtype,             # Transaction type (e.g., "BUY" or "SELL")
+        "trigPrice": "",                # Trigger price (optional, set to "" if not required)
+        "orderTag": "order1"            # Custom tag for the order (optional)
+    }
+    ])
+
+    # Headers including the Authorization token and Content-Type
+    headers = {
+    'Authorization': f"Bearer {session_id}",  # Replace with your session token
+    'Content-Type': 'application/json'
+    }
+
+    # Sending the POST request to the Alice Blue API
+    response = requests.post(url, headers=headers, data=payload)
+
+    # Print the response from the API
+    print(response.text)
+   
+    
+    if response.status_code == 200:
+        logging.info(f"Order placed successfully: {response.json()}")
+        return response.json()
+    else:
+        logging.error(f"Failed to place order. Status Code: {response.status_code}, Response: {response.text}")
+        return None
+    
+#=================================================================================================================================
+#=================================================================================================================================
+
+
 from django.db.models import Sum, Count, Q
 from django.utils import timezone
+
+# def homes(request):
+#     if 'clint_id' in request.session:
+#         user_id = request.session.get('clint_id')
+#         client_user = ind_clientDT.objects.get(clint_id=user_id)
+#         client = ind_clientDT.objects.filter(clint_id=user_id)
+#         api_key = client_user.api_key
+#         auth_token = client_user.auth_token
+#         refresh_token = client_user.refresh_token
+
+#         # if not auth_token or not api_key or not refresh_token:
+#         #     return redirect('redirect_to_smartapi_login')
+
+#         obj = SmartConnect(api_key=api_key)
+#         obj.setAccessToken(auth_token)
+
+#         try:
+#             fund_response = obj.rmsLimit()
+#             print(fund_response)  # Debug: Print the fund response
+#             if fund_response['status'] == True:
+#                 funds = fund_response['data']['net']
+#             else:
+#                 funds = f"Unable to fetch funds: {fund_response.get('message', 'Unknown error')}"
+#         except Exception as e:
+#             funds = f"Exception: {str(e)}"
+
+#     #    trades = Trade.objects.filter(clint_id=user_id).order_by('timestamp')
+#         today = date.today()
+#         # Filter trades for the current date
+#         if client_user.paid_paln == True:
+#             trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today).order_by('timestamp')
+#         else:
+#             trades = Trade.objects.filter(clint_id='DEMO', timestamp__date=today).order_by('timestamp')    
+#         # trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today).order_by('timestamp')
+
+#         long_entries = [trade for trade in trades if trade.trade_type == 'Long_Entry']
+#         short_entries = [trade for trade in trades if trade.trade_type == 'Short_Entry']
+#         long_exits = [trade for trade in trades if trade.trade_type == 'Long_Exit']
+#         short_exits = [trade for trade in trades if trade.trade_type == 'Short_Exit']
+        
+#         profitable_trades = 0
+#         loss_trades = 0
+#         total_cumulative_pnl = 0
+#         total_trades = 0
+        
+#         while long_entries and long_exits:
+#             entry_trade = long_entries.pop(0)
+#             exit_trade = long_exits.pop(0)
+#             pnl = (exit_trade.price - entry_trade.price) * entry_trade.lot_size
+#             total_cumulative_pnl += pnl
+#             total_trades += 1
+#             if pnl > 0:
+#                 profitable_trades += 1
+#             else:
+#                 loss_trades += 1
+        
+#         while short_entries and short_exits:
+#             entry_trade = short_entries.pop(0)
+#             exit_trade = short_exits.pop(0)
+#             pnl = (exit_trade.price - entry_trade.price) * entry_trade.lot_size
+#             total_cumulative_pnl += pnl
+#             total_trades += 1
+#             if pnl > 0:
+#                 profitable_trades += 1
+#             else:
+#                 loss_trades += 1
+        
+#         trade_accuracy = (profitable_trades / total_trades) * 100 if total_trades > 0 else 0
+        
+
+#         # Debug: Print calculated values
+#         # print("Profitable Trades:", profitable_trades)
+#         # print("Loss Trades:", loss_trades)
+#         # print("Total Cumulative PnL:", total_cumulative_pnl)
+#         # print("Trade Accuracy:", trade_accuracy)
+#         dt = {
+#             'profitable_trades': profitable_trades,
+#             'loss_trades': loss_trades,
+#             'total_cumulative_pnl': total_cumulative_pnl,
+#             'trade_accuracy': trade_accuracy,
+#             'funds': funds,
+#             'client_user': client_user,
+#             'term_condition': client_user.Term_condition,
+#         }
+
+#         return render(request, 'homes.html', dt)
+#     else:
+#         messages.error(request, 'Please Login')
+#         return redirect('/')
+    
 
 def homes(request):
     if 'clint_id' in request.session:
@@ -3717,41 +4150,51 @@ def homes(request):
         auth_token = client_user.auth_token
         refresh_token = client_user.refresh_token
 
-        # if not auth_token or not api_key or not refresh_token:
-        #     return redirect('redirect_to_smartapi_login')
+        funds = None  # Initialize funds variable
 
-        obj = SmartConnect(api_key=api_key)
-        obj.setAccessToken(auth_token)
+        if client_user.broker == 'Angel One':
+            # Handle Angel One broker
+            obj = SmartConnect(api_key=api_key)
+            obj.setAccessToken(auth_token)
 
-        try:
-            fund_response = obj.rmsLimit()
-            print(fund_response)  # Debug: Print the fund response
-            if fund_response['status'] == True:
-                funds = fund_response['data']['net']
-            else:
-                funds = f"Unable to fetch funds: {fund_response.get('message', 'Unknown error')}"
-        except Exception as e:
-            funds = f"Exception: {str(e)}"
+            try:
+                fund_response = obj.rmsLimit()
+                print(fund_response)  # Debug: Print the fund response
+                if fund_response['status'] == True:
+                    funds = fund_response['data']['net']
+                else:
+                    funds = f"Unable to fetch funds: {fund_response.get('message', 'Unknown error')}"
+            except Exception as e:
+                funds = f"Exception: {str(e)}"
 
-    #    trades = Trade.objects.filter(clint_id=user_id).order_by('timestamp')
-        today = date.today()
+        elif client_user.broker == 'Alice Blue':
+            # Handle Alice Blue broker
+            obj = AliceBlue(api_key=api_key, access_token=auth_token)
+
+            try:
+                profile = obj.get_profile()  # Example function, change as per Alice Blue's API
+                funds = profile.get('equity', {}).get('available_margin', 'Not Available')
+            except Exception as e:
+                funds = f"Exception: {str(e)}"
+
         # Filter trades for the current date
-        if client_user.paid_paln == True:
+        today = date.today()
+        if client_user.paid_paln:
             trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today).order_by('timestamp')
         else:
-            trades = Trade.objects.filter(clint_id='DEMO', timestamp__date=today).order_by('timestamp')    
-        # trades = Trade.objects.filter(clint_id=user_id, timestamp__date=today).order_by('timestamp')
+            trades = Trade.objects.filter(clint_id='DEMO', timestamp__date=today).order_by('timestamp')
 
+        # Categorize and analyze trades
         long_entries = [trade for trade in trades if trade.trade_type == 'Long_Entry']
         short_entries = [trade for trade in trades if trade.trade_type == 'Short_Entry']
         long_exits = [trade for trade in trades if trade.trade_type == 'Long_Exit']
         short_exits = [trade for trade in trades if trade.trade_type == 'Short_Exit']
-        
+
         profitable_trades = 0
         loss_trades = 0
         total_cumulative_pnl = 0
         total_trades = 0
-        
+
         while long_entries and long_exits:
             entry_trade = long_entries.pop(0)
             exit_trade = long_exits.pop(0)
@@ -3762,7 +4205,7 @@ def homes(request):
                 profitable_trades += 1
             else:
                 loss_trades += 1
-        
+
         while short_entries and short_exits:
             entry_trade = short_entries.pop(0)
             exit_trade = short_exits.pop(0)
@@ -3773,15 +4216,9 @@ def homes(request):
                 profitable_trades += 1
             else:
                 loss_trades += 1
-        
-        trade_accuracy = (profitable_trades / total_trades) * 100 if total_trades > 0 else 0
-        
 
-        # Debug: Print calculated values
-        # print("Profitable Trades:", profitable_trades)
-        # print("Loss Trades:", loss_trades)
-        # print("Total Cumulative PnL:", total_cumulative_pnl)
-        # print("Trade Accuracy:", trade_accuracy)
+        trade_accuracy = (profitable_trades / total_trades) * 100 if total_trades > 0 else 0
+
         dt = {
             'profitable_trades': profitable_trades,
             'loss_trades': loss_trades,
@@ -4132,3 +4569,19 @@ def fetch_and_display_orders(request):
     else:
         messages.error(request, 'Please Login')
         return redirect('/')
+
+
+#==============================================================##========================================================
+#======================================================Alice Blue=========================================================
+
+from alice_blue import AliceBlue
+
+# Initialize Alice Blue API Clientpip
+def initialize_alice_blue(app_id, secret_key):
+    try:
+        client = AliceBlue(app_id=app_id, secret_key=secret_key)
+        print("Alice Blue client initialized successfully")
+        return client
+    except Exception as e:
+        print(f"Error initializing Alice Blue client: {e}")
+        return None

@@ -172,14 +172,18 @@ class ind_clientDT(models.Model):
     client_Group = models.ForeignKey(GROUP, on_delete=models.SET_NULL, blank=True, null=True)
     broker = models.ForeignKey(BROKERS, on_delete=models.SET_NULL, blank=True, null=True)
     
-    
+    user_id = models.CharField(max_length=100, blank=True, null=True)
     api_key = models.CharField(max_length=100, blank=True, null=True)
+    # appcode = models.CharField(max_length=100, blank=True, null=True)
+
     client_id = models.CharField(max_length=100, blank=True, null=True)
     password = models.CharField(max_length=100, blank=True, null=True)
     secret_key = models.CharField(max_length=100, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True, null=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True, null=True)
 
+    app_id = models.CharField(max_length=100, blank=True, null=True)
+    # demate_user_id = models.CharField(max_length=100, blank=True, null=True)
     auth_token = models.CharField(max_length=1355, blank=True, null=True)  # Add this field
     feed_token = models.CharField(max_length=1355, blank=True, null=True)  # Add this field
     refresh_token = models.CharField(max_length=1355, blank=True, null=True)  # Add this field
