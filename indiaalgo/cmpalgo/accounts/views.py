@@ -1,4 +1,5 @@
 from django.shortcuts import render , HttpResponse , redirect
+import upstox_client.configuration
 from .models import *
 from django.shortcuts import get_object_or_404
 
@@ -2749,8 +2750,10 @@ def redirect_to_smartapi_login(request):
                 redirect_url = f"https://ant.aliceblueonline.com/?appcode={appcode}"
                 return redirect(redirect_url)
             elif broker_name == 'Upstox':
-                appcode = client_user.api_key  # Get Alice Blue App Code
-                redirect_url = f"https://api.upstox.com/index/dialog/authorize?api_key={api_key}"
+                api_key = client_user.api_key
+                redirect_uri = "https://app.anvestors.com/handle-smartapi-redirect/"  # Your redirect URI
+                state = "RnJpIERlYyAxNiAyMDIyIDE1OjU4OjUxIEdNVCswNTMwIChJbmRpYSBTdGFuZGFyZCBUaW1lKQ=="  # You can generate a unique state value for each request
+                redirect_url = f"https://api.upstox.com/v2/login/authorization/dialog?response_type=code&client_id={api_key}&redirect_uri={redirect_uri}&state={state}"
                 return redirect(redirect_url)
             else:
                 return redirect('/home/')
@@ -2805,7 +2808,7 @@ def handle_smartapi_redirect(request):
                 authCode =  query_params['authCode'][0]
                
                 enc_key = query_params.get('encKey', [None])[0]  # Assume you get encKey in response
-                
+
                 # if enc_key:
                 #   session_id = generate_session_id(user_id, client_user.api_key, enc_key)
                 print(enc_key)
@@ -2824,35 +2827,51 @@ def handle_smartapi_redirect(request):
                 return redirect('/dashbord/') 
              
         elif str(client_user.broker) == 'Upstox':
-           
-            if 'authCode' in query_params:
-                authCode =  query_params['authCode'][0]
-               
-                enc_key = query_params.get('encKey', [None])[0]  # Assume you get encKey in response
+            auth_code = query_params.get('code', [None])[0]  # Updated to use 'code' from Upstox
+            if auth_code:
+                # Exchange auth code for access token
+                token_url = "https://api.upstox.com/v2/login/authorization/token"
+                redirect_uri = "https://app.anvestors.com/handle-smartapi-redirect/"
                 
-                # if enc_key:
-                #   session_id = generate_session_id(user_id, client_user.api_key, enc_key)
-                print(enc_key)
-                client = ind_clientDT.objects.get(clint_id=user_id)
-                        # Save the tokens in the client record
-                client.clint_plane = 'Live'
-                client.auth_token = authCode
-            #   client.feed_token = ''
-            #   client.refresh_token = ''
-                client.save()
-                update_login_info(request,user_id)
-                    # Save session ID or perform further actions as needed
-                return redirect('/dashbord/')  # Replace 'dashboard' with your actual dashboard URL name
-            else:
-                update_login_info(request,user_id)
-                return redirect('/dashbord/')     
+                payload = {
+                    'grant_type': 'authorization_code',
+                    'code': auth_code,
+                    'client_id': client_user.api_key,
+                    'client_secret': client_user.secret_key,
+                    'redirect_uri': redirect_uri
+                }
+                
+                headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                }
+                
+                response = requests.post(token_url, data=payload, headers=headers)
+                
+                if response.status_code == 200:
+                    tokens = response.json()
+                    access_token = tokens.get('access_token')
+                    refresh_token = tokens.get('refresh_token')
 
-       
+                    # Save the tokens in the client record
+                    client_user.clint_plane = 'Live'
+                    client_user.auth_token = access_token
+                    client_user.refresh_token = refresh_token
+                    client_user.save()
+                    update_login_info(request, user_id)
+                    return redirect('/dashbord/')
+                else:
+                    # Handle error
+                    print(f"Error obtaining access token: {response.json().get('error_description', 'Unknown error occurred')}")
+                    return redirect('/dashbord/')
+            else:
+                return redirect('/dashbord/')
+        
         else:
-            messages.error(request, "Please accept term and condition")
-            return redirect('/dashbord/')    
+            messages.error(request, "Please accept the terms and conditions")
+            return redirect('/dashbord/')
     else:
-        messages.error(request, 'Pls Login')
+        messages.error(request, "Please Login")
         return redirect('/')
 
 import logging
@@ -3765,7 +3784,8 @@ def place_order_all(request, trade, trade_type, symbol, price ,selected_option):
                             send_trade_to_angel_broking(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key , symbol_obj.SYMBOL )
                         elif broker_name == 'Alice Blue':
                             send_trade_to_alice_blue(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key , symbol_obj.SYMBOL)
-                        # Add more brokers as needed
+                        elif broker_name == 'Upstox':
+                            send_trade_to_upstox(trade, trade_type, symbol, price, client.auth_token, qty, client.clint_id, client.api_key, symbol_obj.SYMBOL)
                     else:
                         logger.info(f"Trade is off for symbol: {symbol}")
 
@@ -4046,6 +4066,130 @@ def place_alice_blue(user_id, session_id , trading_symbol , quntity , prices ,tr
     
 #=================================================================================================================================
 #=================================================================================================================================
+'''======================================================================================================='''
+
+'-----------------------------------send_trade_to_Upstox--------------------------------'
+
+'''======================================================================================================='''
+import requests
+import json
+import logging
+
+# Setup logger
+logger = logging.getLogger(__name__)
+
+def send_trade_to_upstox(trade, trade_type, symbol, price, auth_token, qty, client_id, api_key, SYMBOL_m):
+    try:
+        # Retrieve the symbol object and get the necessary details
+        symbol_obj = SYMBOL.objects.get(SYMBOL_order=symbol)
+        instrument_token = symbol_obj.symbol_token  # Ensure this is the correct instrument token
+
+        # Determine the exchange segment; for example, NSE_FO for options
+        exchange_segment = "NSE_FO"  # Example for futures and options on NSE
+
+        # Construct the instrument_key using the exchange segment and instrument token
+        instrument_key = f"{exchange_segment}|{instrument_token}"
+        print(f"Instrument Key: {instrument_key}")
+
+        headers = {
+            'Authorization': f'Bearer {auth_token}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+        }
+
+        # Determine transaction type based on trade_type
+        if trade_type in ['Long_Entry', 'Short_Entry']:
+            transaction_type = 'BUY'
+        elif trade_type in ['Long_Exit', 'Short_Exit']:
+            transaction_type = 'SELL'
+        else:
+            transaction_type = 'SELL'
+
+        # Prepare the order data
+        order_data = {
+            "quantity": qty,
+            "product": "I",  # Intraday
+            "validity": "DAY",
+            "instrument_token": instrument_key,  # Use the correct instrument key field
+            "order_type": "MARKET",  # MARKET order
+            "transaction_type": transaction_type,  # BUY or SELL
+            "price": 0,  # Explicitly set price to 0 for MARKET orders
+            "disclosed_quantity": 0,
+            "trigger_price": 0,
+            "is_amo": False  # Assuming this is not an After Market Order
+        }
+
+        print(f"Order Data: {order_data}")
+
+        # Make the API request to place the order
+        url = "https://api-hft.upstox.com/v2/order/place"
+        response = requests.post(url, headers=headers, data=json.dumps(order_data))
+
+        print(f"Order response from Upstox: {response.json()}")
+        logger.debug(f"Order response from Upstox: {response.json()}")
+
+        # Handle response
+        if response.status_code == 200 and response.json().get('status') == 'success':
+            order_id = response.json()['data']['order_id']
+            print(f"Order placed successfully. Order ID: {order_id}")
+        else:
+            order_id = 'Unknown'
+            error_message = response.json().get('errors', [{'message': 'Unknown error'}])[0]['message']
+            logger.error(f"Failed to execute trade: {error_message}")
+            print(f"Failed to execute trade: {error_message}")
+
+        # Save trade record
+        trade_record = Trade(
+            trade_type=trade_type,
+            symbol=symbol,
+            price=price,  # Price is set to 0 for MARKET orders
+            lot_size=qty,
+            status="Executed" if response.status_code == 200 else "Failed",
+            clint_id=client_id,
+            order_id=order_id
+        )
+        trade_record.save()
+
+        # Save order details in OrderAngelOne model if trade was executed successfully
+        if response.status_code == 200 and response.json().get('status') == 'success':
+            order_angel = OrderAngelOne(
+                clint=client_id,
+                symbol=SYMBOL_m,
+                tradingsymbol=symbol,
+                symboltoken=instrument_token,
+                transaction_type=transaction_type,
+                order_type="MARKET",
+                quantity=qty,
+                segment_type="NFO",
+                squareoff=0,
+                stoploss=0,
+                price=price,  # Price is set to 0 for MARKET orders
+                order_id=order_id
+            )
+            order_angel.save()
+
+            logger.info(f"Trade and order details saved successfully. Order ID: {order_id}")
+        else:
+            logger.error(f"Failed to save trade and order details. Order ID: {order_id}")
+
+    except SYMBOL.DoesNotExist:
+        logger.error(f"Symbol {symbol} does not exist in the database")
+        print(f"Symbol {symbol} does not exist in the database")
+    except Exception as e:
+        logger.error(f"Error in transferring trade to Upstox: {str(e)}")
+        print(f"Exception: {e} during send_trade_to_upstox")
+
+        # Save the failed trade record
+        trade_record = Trade(
+            trade_type=trade_type,
+            symbol=symbol,
+            price=price,  # Price is set to 0 for MARKET orders
+            lot_size=qty,
+            status="Failed",
+            clint_id=client_id,
+            order_id='Unknown'
+        )
+        trade_record.save()
 
 
 from django.db.models import Sum, Count, Q

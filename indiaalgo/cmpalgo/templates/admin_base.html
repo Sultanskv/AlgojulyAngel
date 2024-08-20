@@ -66,21 +66,15 @@
 
             {% comment %} list-group-item-warning {% endcomment %}
             <div class="list-group">
-              <a href="#" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/admin_dashboard/' %} active {% endif %}">
+              <a href="/admin_dashboard/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/admin_dashboard/' %} active {% endif %}">
                   <span class="icon">&#127968;</span> Dashboard
               </a>
 
-              <a href="/fetch_and_save_data/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/fetch_and_save_data/' %} active {% endif %}">
-                <span class="icon">&#127968;</span> Fetch & Save Data
-            </a>
 
-            <a href="/fetch_all_symbol/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/fetch_all_symbol/' %} active {% endif %}">
-                <span class="icon">&#127968;</span> All Symbol List
-            </a>
 
-            <a href="/Live_admin_message/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/Live_admin_message/' %} active {% endif %}">
+            <!-- <a href="/Live_admin_message/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/Live_admin_message/' %} active {% endif %}">
                 <span class="icon">&#127968;</span> Live Admin Message
-            </a>
+            </a> -->
 
             <a href="/group_list/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/group_list/' %} active {% endif %}">
                 <span class="icon">&#127968;</span> Group List
@@ -90,13 +84,6 @@
                 <span class="icon">&#127968;</span> Strategy List
             </a>
 
-
-              <a href="#" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/admin_message/' %} active {% endif %}">
-                  <span class="icon">&#9993;</span> Message
-              </a>
-              <a href="#" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/admin_signals/' %} active {% endif %}">
-                  <span class="icon">&#128161;</span> Signals
-              </a>
               <a href="#" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/admin_thistory/' %} active {% endif %}">
                   <span class="icon">&#128202;</span> Trade History
               </a>
@@ -118,6 +105,13 @@
               <a href="{% url 'logoutAdmin' %}"class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/adminlogout/' %} active {% endif %}">
                   <span class="icon">&#128682;</span> Logout
               </a>
+              <a href="/fetch_and_save_data/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/fetch_and_save_data/' %} active {% endif %}">
+                <span class="icon">&#127968;</span> Fetch & Save Data
+            </a>
+
+            <a href="/fetch_all_symbol/" class="list-group-item list-group-item-warning list-group-item-action {% if request.path == '/fetch_all_symbol/' %} active {% endif %}">
+                <span class="icon">&#127968;</span> All Symbol List
+            </a>
           </div>
         </div>
         {% comment %} container start {% endcomment %}

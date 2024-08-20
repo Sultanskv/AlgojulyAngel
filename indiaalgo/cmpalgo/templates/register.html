@@ -3,67 +3,67 @@
 {% block main %}
 
 <style>
-  body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f7f6;
-      padding: 20px;
-  }
-  .card-shadow {
-      background-color: #fff;
-      padding: 30px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      max-width: 800px;
-      margin: 0 auto;
-  }
-  .card-body h5 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #333;
-  }
-  .form-group {
-      margin-bottom: 20px;
-  }
-  label {
-      display: block;
-      margin-bottom: 8px;
-      color: #333;
-  }
-  input[type="text"], input[type="email"], input[type="tel"], input[type="datetime-local"], input[type="password"], select {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      box-sizing: border-box;
-      font-size: 16px;
-  }
-  input[type="submit"] {
-      background-color: #007bff;
-      color: white;
-      padding: 14px 20px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      font-size: 18px;
-      width: 100%;
-      transition: background-color 0.3s;
-  }
-  input[type="submit"]:hover {
-      background-color: #0056b3;
-  }
-  .alert {
-      text-align: center;
-      padding: 10px;
-      margin-bottom: 20px;
-      color: white;
-      border-radius: 5px;
-  }
-  .alert-danger {
-      background-color: #f44336;
-  }
-  .hidden {
-      display: none;
-  }
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f7f6;
+        padding: 20px;
+    }
+    .card-shadow {
+        background-color: #fff;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .card-body h5 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: #333;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    label {
+        display: block;
+        margin-bottom: 8px;
+        color: #333;
+    }
+    input[type="text"], input[type="email"], input[type="tel"], input[type="datetime-local"], input[type="password"], select {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        box-sizing: border-box;
+        font-size: 16px;
+    }
+    input[type="submit"] {
+        background-color: #007bff;
+        color: white;
+        padding: 14px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 18px;
+        width: 100%;
+        transition: background-color 0.3s;
+    }
+    input[type="submit"]:hover {
+        background-color: #0056b3;
+    }
+    .alert {
+        text-align: center;
+        padding: 10px;
+        margin-bottom: 20px;
+        color: white;
+        border-radius: 5px;
+    }
+    .alert-danger {
+        background-color: #f44336;
+    }
+    .hidden {
+        display: none;
+    }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -79,16 +79,15 @@
                 $('#alice-blue-input').show();  // Show Alice Blue specific inputs
             } else if (selectedBroker === 'Upstox') {
                 $('#upstox-input').show();  // Show Upstox specific inputs
-            }else if (selectedBroker === '5paisa') {
+            } else if (selectedBroker === '5paisa') {
                 $('#5paisa-input').show();  // Show 5paisa specific inputs
-            }else if (selectedBroker === 'Zerodha') {
+            } else if (selectedBroker === 'Zerodha') {
                 $('#zerodha-input').show();  // Show Zerodha specific inputs
-            }else if (selectedBroker === 'Zebull') {
+            } else if (selectedBroker === 'Zebull') {
                 $('#zebull-input').show();  // Show Zebull specific inputs
-            }else if (selectedBroker === 'Fyers') {
+            } else if (selectedBroker === 'Fyers') {
                 $('#fyers-input').show();  // Show Fyers specific inputs
             }
-
         });       
     });
 </script>
@@ -225,7 +224,7 @@
                     </div>
                 </div>
                 
-                <!-- Zeridha Specific Fields -->
+                <!-- Zerodha Specific Fields -->
                 <div class="col-md-6 broker-input" id="zerodha-input" style="display:none;">
                     <div class="form-group">
                         <label for="zerodha-key">API Key</label>
@@ -237,8 +236,8 @@
                     </div>
                 </div>
 
-                   <!-- Zebull Specific Fields -->
-                   <div class="col-md-6 broker-input" id="zebull-input" style="display:none;">
+                <!-- Zebull Specific Fields -->
+                <div class="col-md-6 broker-input" id="zebull-input" style="display:none;">
                     <div class="form-group">
                         <label for="zebull-user_id">User Id</label>
                         <input type="text" class="form-control" name="zebull_user_id" id="zebull-user_id" placeholder="Enter UserID">
@@ -257,8 +256,8 @@
                     </div>
                 </div>
 
-                   <!-- Fyers Specific Fields -->
-                   <div class="col-md-6 broker-input" id="fyers-input" style="display:none;">
+                <!-- Fyers Specific Fields -->
+                <div class="col-md-6 broker-input" id="fyers-input" style="display:none;">
                     <div class="form-group">
                         <label for="fyers-app_id">APP ID</label>
                         <input type="text" class="form-control" name="fyers_app_id" id="fyers-app_id" placeholder="Enter APP ID">
@@ -268,8 +267,6 @@
                         <input type="text" class="form-control" name="fyers_secret_key" id="fyers-secret_key" placeholder="Enter Secret Key">
                     </div>
                 </div>
-
-
 
                 <div class="col-md-6">
                     <div class="form-group">
@@ -329,6 +326,32 @@
                             {% for strategy in strategies %}
                                 <option value="{{ strategy.id }}">{{ strategy.Strategy }}</option>
                             {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="telegram_number">Telegram Number</label>
+                        <input type="text" class="form-control" name="telegram_number" id="telegram_number" placeholder="Enter Telegram Number">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="telegram_chat_id">Telegram Chat ID</label>
+                        <input type="text" class="form-control" name="telegram_chat_id" id="telegram_chat_id" placeholder="Enter Telegram Chat ID">
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label for="selected_option">Select an Option</label>
+                        <select class="form-control" name="selected_option" id="selected_option" required>
+                            <option value="A">Alpha Wave</option>
+                            <option value="B">Beta Balance</option>
+                            <option value="C">Gamma Gains</option>
+                            <option value="D">Demograph</option>
                         </select>
                     </div>
                 </div>
