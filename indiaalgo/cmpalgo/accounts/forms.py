@@ -224,6 +224,7 @@ class NotificationForm(forms.ModelForm):
         model = Notification
         fields = ['message']
 
+# forms.py
 
 
  

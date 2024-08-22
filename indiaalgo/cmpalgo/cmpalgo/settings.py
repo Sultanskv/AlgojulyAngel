@@ -235,20 +235,19 @@ from decouple import config
 # EMAIL_HOST_PASSWORD = '8hGG BGGJ 1Y2M'  # Your email password or app-specific password
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587    # Use 465 for TLS
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'ittechnology1may2023@gmail.com'  # Your email address
-EMAIL_HOST_PASSWORD = 'uyfg cflv fhhz nmhq'      # Your email password or app-specific password
-
-
 # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = 'smtp.zoho.com'
+# EMAIL_HOST = 'smtp.gmail.com'
 # EMAIL_PORT = 587    # Use 465 for TLS
 # EMAIL_USE_TLS = True
-# EMAIL_HOST_USER = 'accounts@anvestors.com'  # Your email address
-# EMAIL_HOST_PASSWORD = '8hGG BGGJ 1Y2M'      # Your email password or app-specific password
+# EMAIL_HOST_USER = 'ittechnology1may2023@gmail.com'  # Your email address
+# EMAIL_HOST_PASSWORD = 'uyfg cflv fhhz nmhq'      # Your email password or app-specific password
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.zoho.in'
+EMAIL_PORT = 587    # Use 465 for TLS
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'accounts@anvestors.com'  # Your email address
+EMAIL_HOST_PASSWORD = '8hGG BGGJ 1Y2M'      # Your email password or app-specific password
 
 # EMAIL_HOST_PASSWORD =  'LGEF3QIWJ7PWMRZ5'
 

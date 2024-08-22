@@ -3,72 +3,73 @@
 {% block main %}
 
 <style>
-    body {
-        font-family: Arial, sans-serif;
-        background-color: #f4f7f6;
-        padding: 20px;
-    }
-    .card-shadow {
-        background-color: #fff;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    .card-body h5 {
-        text-align: center;
-        margin-bottom: 20px;
-        color: #333;
-    }
-    .form-group {
-        margin-bottom: 20px;
-    }
-    label {
-        display: block;
-        margin-bottom: 8px;
-        color: #333;
-    }
-    input[type="text"], input[type="email"], input[type="tel"], input[type="datetime-local"], input[type="password"], select {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
-        box-sizing: border-box;
-        font-size: 16px;
-    }
-    input[type="submit"] {
-        background-color: #007bff;
-        color: white;
-        padding: 14px 20px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        font-size: 18px;
-        width: 100%;
-        transition: background-color 0.3s;
-    }
-    input[type="submit"]:hover {
-        background-color: #0056b3;
-    }
-    .alert {
-        text-align: center;
-        padding: 10px;
-        margin-bottom: 20px;
-        color: white;
-        border-radius: 5px;
-    }
-    .alert-danger {
-        background-color: #f44336;
-    }
-    .hidden {
-        display: none;
-    }
+  body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f7f6;
+      padding: 20px;
+  }
+  .card-shadow {
+      background-color: #fff;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      max-width: 800px;
+      margin: 0 auto;
+  }
+  .card-body h5 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+  }
+  .form-group {
+      margin-bottom: 20px;
+  }
+  label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+  }
+  input[type="text"], input[type="email"], input[type="tel"], input[type="datetime-local"], input[type="password"], select {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 16px;
+  }
+  input[type="submit"] {
+      background-color: #007bff;
+      color: white;
+      padding: 14px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 18px;
+      width: 100%;
+      transition: background-color 0.3s;
+  }
+  input[type="submit"]:hover {
+      background-color: #0056b3;
+  }
+  .alert {
+      text-align: center;
+      padding: 10px;
+      margin-bottom: 20px;
+      color: white;
+      border-radius: 5px;
+  }
+  .alert-danger {
+      background-color: #f44336;
+  }
+  .hidden {
+      display: none;
+  }
 </style>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Handle broker selection to show/hide specific fields
         $('#options').change(function() {
             var selectedBroker = $(this).val();
             $('.broker-input').hide();  // Hide all broker-specific inputs
@@ -79,16 +80,31 @@
                 $('#alice-blue-input').show();  // Show Alice Blue specific inputs
             } else if (selectedBroker === 'Upstox') {
                 $('#upstox-input').show();  // Show Upstox specific inputs
-            } else if (selectedBroker === '5paisa') {
+            }else if (selectedBroker === '5paisa') {
                 $('#5paisa-input').show();  // Show 5paisa specific inputs
-            } else if (selectedBroker === 'Zerodha') {
-                $('#zerodha-input').show();  // Show Zerodha specific inputs
-            } else if (selectedBroker === 'Zebull') {
-                $('#zebull-input').show();  // Show Zebull specific inputs
-            } else if (selectedBroker === 'Fyers') {
-                $('#fyers-input').show();  // Show Fyers specific inputs
             }
-        });       
+        });
+
+        // Fetch and display symbols based on selected group
+        $('#group').change(function() {
+            var groupId = $(this).val();
+            if (groupId) {
+                $.ajax({
+                    url: '/get-symbols/' + groupId + '/',
+                    method: 'GET',
+                    success: function(data) {
+                        var symbolContainer = $('#symbol-container');
+                        symbolContainer.empty(); // Clear current symbols
+                        $.each(data.symbols, function(index, symbol) {
+                            symbolContainer.append('<div class="grid-item">' + symbol.name + '</div>');
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error fetching symbols:', error);
+                    }
+                });
+            }
+        });
     });
 </script>
 
@@ -164,91 +180,92 @@
                         <select id="options" name="Broker" class="form-control">
                             <option>Select Broker</option>
                             {% for b in brokers %}
-                            <option value="{{b.broker_name}}">
-                                {{b.broker_name}}
+                            <option value="{{ b.broker_name }}">
+                                {{ b.broker_name }}
                             </option>
                             {% endfor %}
                         </select>
                     </div>
                 </div>
-
+    
                 <!-- Angel One Specific Fields -->
                 <div class="col-md-6 broker-input" id="angel-input" style="display:none;">
                     <div class="form-group">
                         <label for="angel-api-key">API Key</label>
-                        <input type="text" class="form-control" name="angel_api_key" id="angel-api-key" placeholder="Enter API Key">
+                        <input type="text" class="form-control" name="api_key" id="angel-api-key" placeholder="Enter API Key">
                     </div>
                 </div>
-
+    
                 <!-- Alice Blue Specific Fields -->
                 <div class="col-md-6 broker-input" id="alice-blue-input" style="display:none;">
                     <div class="form-group">
                         <label for="alice-secret_key">Secret Key/APP KEY</label>
-                        <input type="text" class="form-control" name="alice_secret_key" id="alice-secret_key" placeholder="Enter Secret Key">
+                        <input type="text" class="form-control" name="secret_key" id="alice-secret_key" placeholder="Enter Secret Key">
                     </div>
                     <div class="form-group">
                         <label for="alice-app_id">APP ID/USER ID</label>
-                        <input type="text" class="form-control" name="alice_app_id" id="alice-app_id" placeholder="Enter App ID">
+                        <input type="text" class="form-control" name="app_id" id="alice-app_id" placeholder="Enter App ID">
                     </div>
                     <div class="form-group">
                         <label for="alice-demate_user_id">DEMATE USER ID</label>
-                        <input type="text" class="form-control" name="alice_demate_user_id" id="alice-demate_user_id" placeholder="Enter Demate User ID">
+                        <input type="text" class="form-control" name="user_id" id="alice-demate_user_id" placeholder="Enter Demate User ID">
                     </div>
                 </div>
-
+    
                 <!-- Upstox Specific Fields -->
                 <div class="col-md-6 broker-input" id="upstox-input" style="display:none;">
                     <div class="form-group">
                         <label for="upstox-api-key">API Key</label>
-                        <input type="text" class="form-control" name="upstox_api_key" id="upstox-api-key" placeholder="Enter API Key">
+                        <input type="text" class="form-control" name="api_key" id="upstox-api-key" placeholder="Enter API Key">
                     </div>
                     <div class="form-group">
                         <label for="upstox-secret_key">Secret Key</label>
-                        <input type="text" class="form-control" name="upstox_secret_key" id="upstox-secret_key" placeholder="Enter Secret Key">
+                        <input type="text" class="form-control" name="secret_key" id="upstox-secret_key" placeholder="Enter Secret Key">
                     </div>
                 </div>
+    
 
                 <!-- 5paisa Specific Fields -->
                 <div class="col-md-6 broker-input" id="5paisa-input" style="display:none;">
                     <div class="form-group">
                         <label for="5paisa-key">Key</label>
-                        <input type="text" class="form-control" name="5paisa_key" id="5paisa-key" placeholder="Enter API Key">
+                        <input type="text" class="form-control" name="api_key" id="5paisa-key" placeholder="Enter API Key">
                     </div>
                     <div class="form-group">
                         <label for="5paisa-userid">UserID</label>
-                        <input type="text" class="form-control" name="5paisa_userid" id="5paisa-userid" placeholder="Enter UserID">
+                        <input type="text" class="form-control" name="user_id" id="5paisa-userid" placeholder="Enter UserID">
                     </div>
                     <div class="form-group">
                         <label for="5paisa-encryption_key">ENCRYPTION_KEY</label>
-                        <input type="text" class="form-control" name="5paisa_encryption_key" id="5paisa-encryption_key" placeholder="Enter Encryption Key">
+                        <input type="text" class="form-control" name="secret_key" id="5paisa-encryption_key" placeholder="Enter Encryption Key">
                     </div>
                 </div>
                 
-                <!-- Zerodha Specific Fields -->
+                {% comment %} <!-- Zerodha Specific Fields -->
                 <div class="col-md-6 broker-input" id="zerodha-input" style="display:none;">
                     <div class="form-group">
                         <label for="zerodha-key">API Key</label>
-                        <input type="text" class="form-control" name="zerodha_key" id="zerodha-key" placeholder="Enter API Key">
+                        <input type="text" class="form-control" name="api_key" id="zerodha-key" placeholder="Enter API Key">
                     </div>
                     <div class="form-group">
-                        <label for="erodha-api_secret_key">API Secret Key</label>
-                        <input type="text" class="form-control" name="api_secret_key" id="erodha-api_secret_key" placeholder="Enter API Secret Key">
+                        <label for="zerodha-api_secret_key">API Secret Key</label>
+                        <input type="text" class="form-control" name="secret_key" id="zerodha-api_secret_key" placeholder="Enter API Secret Key">
                     </div>
                 </div>
 
-                <!-- Zebull Specific Fields -->
-                <div class="col-md-6 broker-input" id="zebull-input" style="display:none;">
+                   <!-- Zebull Specific Fields -->
+                   <div class="col-md-6 broker-input" id="zebull-input" style="display:none;">
                     <div class="form-group">
                         <label for="zebull-user_id">User Id</label>
-                        <input type="text" class="form-control" name="zebull_user_id" id="zebull-user_id" placeholder="Enter UserID">
+                        <input type="text" class="form-control" name="user_id" id="zebull-user_id" placeholder="Enter UserID">
                     </div>
                     <div class="form-group">
                         <label for="zebull-password">Password</label>
-                        <input type="text" class="form-control" name="zebull_password" id="zebull-password" placeholder="Enter Password">
+                        <input type="text" class="form-control" name="password" id="zebull-password" placeholder="Enter Password">
                     </div>
                     <div class="form-group">
                         <label for="zebull-app_key">APP Key</label>
-                        <input type="text" class="form-control" name="zebull_app_key" id="zebull-app_key" placeholder="Enter App Key">
+                        <input type="text" class="form-control" name="api_key" id="zebull-app_key" placeholder="Enter App Key">
                     </div>
                     <div class="form-group">
                         <label for="zebull-dob">DOB</label>
@@ -256,17 +273,17 @@
                     </div>
                 </div>
 
-                <!-- Fyers Specific Fields -->
-                <div class="col-md-6 broker-input" id="fyers-input" style="display:none;">
+                   <!-- Fyers Specific Fields -->
+                   <div class="col-md-6 broker-input" id="fyers-input" style="display:none;">
                     <div class="form-group">
                         <label for="fyers-app_id">APP ID</label>
-                        <input type="text" class="form-control" name="fyers_app_id" id="fyers-app_id" placeholder="Enter APP ID">
+                        <input type="text" class="form-control" name="app_id" id="fyers-app_id" placeholder="Enter APP ID">
                     </div>
                     <div class="form-group">
                         <label for="fyers-secret_key">Secret Key</label>
-                        <input type="text" class="form-control" name="fyers_secret_key" id="fyers-secret_key" placeholder="Enter Secret Key">
+                        <input type="text" class="form-control" name="secret_key" id="fyers-secret_key" placeholder="Enter Secret Key">
                     </div>
-                </div>
+                </div> {% endcomment %}
 
                 <div class="col-md-6">
                     <div class="form-group">
@@ -317,6 +334,7 @@
                         }
                     }
                 </script>
+                
 
                 <div class="col-md-12">
                     <div class="form-group">
@@ -326,32 +344,6 @@
                             {% for strategy in strategies %}
                                 <option value="{{ strategy.id }}">{{ strategy.Strategy }}</option>
                             {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="telegram_number">Telegram Number</label>
-                        <input type="text" class="form-control" name="telegram_number" id="telegram_number" placeholder="Enter Telegram Number">
-                    </div>
-                </div>
-
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label for="telegram_chat_id">Telegram Chat ID</label>
-                        <input type="text" class="form-control" name="telegram_chat_id" id="telegram_chat_id" placeholder="Enter Telegram Chat ID">
-                    </div>
-                </div>
-
-                <div class="col-md-12">
-                    <div class="form-group">
-                        <label for="selected_option">Select an Option</label>
-                        <select class="form-control" name="selected_option" id="selected_option" required>
-                            <option value="A">Alpha Wave</option>
-                            <option value="B">Beta Balance</option>
-                            <option value="C">Gamma Gains</option>
-                            <option value="D">Demograph</option>
                         </select>
                     </div>
                 </div>

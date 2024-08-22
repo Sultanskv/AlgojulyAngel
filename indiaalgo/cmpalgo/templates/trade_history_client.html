@@ -95,6 +95,30 @@
             text-decoration: none;
             background-color: transparent;
         }
+        .ticker-container {
+    overflow: hidden;
+    white-space: nowrap;
+    box-sizing: border-box;
+    background-color: #ffffff; /* Background color for the ticker */
+    padding: 10px 0;
+}
+
+.ticker-text {
+    display: inline-block;
+    padding-left: 100%;
+    animation: ticker 30s linear infinite;
+    color: #ff0045; /* Text color for the ticker */
+    font-weight: bold;
+}
+
+@keyframes ticker {
+    0% {
+        transform: translateX(5%);
+    }
+    100% {
+        transform: translateX(-100%);
+    }
+}
     </style>
 </head>
 <body>
@@ -137,11 +161,10 @@
     <h3 class="text-center glow">Total cumulative P&L: <span class="{% if cumulative_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">{{ cumulative_pnl }}</span></h3>
     {% comment %} <h3 class="text-center glow">Total cumulative P&L: <span class="{% if total_cumulative_pnl >= 0 %}text-success{% else %}text-danger{% endif %}">{{ total_cumulative_pnl }}</span></h3> {% endcomment %}
 </div>
-<div class="container fade-in">
-    <p>
-        THIS RESULTS IS VALID FOR TODAY ONLY, WE DO NOT DIRECTLY OR INDIRECTLY MAKE ANY REFERENCE TO THE PAST OR EXPECTED FUTURE RETURN/PERFORMANCE OF THE ALGORITHM /
-        सभी प्रतिभूतियां एल्गो ट्रेडिंग सिस्टम बाजार जोखिमों के अधीन हैं और इस बात का कोई आश्वासन नहीं दिया जा सकता है कि उपयोगकर्ता के उद्देश्यों को आज के प्रदर्शन के आधार पर प्राप्त किया जाएगा। यह परिणाम केवल आज के लिए मान्य है।
-    </p>
+<div class="ticker-container">
+    <div class="ticker-text">
+        THIS RESULT IS VALID FOR TODAY ONLY. WE DO NOT DIRECTLY OR INDIRECTLY MAKE ANY REFERENCE TO THE PAST OR EXPECTED FUTURE RETURN/PERFORMANCE OF THE ALGORITHM. सभी प्रतिभूतियां एल्गो ट्रेडिंग सिस्टम बाजार जोखिमों के अधीन हैं और इस बात का कोई आश्वासन नहीं दिया जा सकता है कि उपयोगकर्ता के उद्देश्यों को आज के प्रदर्शन के आधार पर प्राप्त किया जाएगा। यह परिणाम केवल आज के लिए मान्य है।
+    </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js"></script>

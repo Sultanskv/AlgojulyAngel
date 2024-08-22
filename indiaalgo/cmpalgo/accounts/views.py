@@ -1935,16 +1935,6 @@ def client_logout(request):
     # return redirect('')
 
 ###########################  clint login method start ####################################
-
-from django.shortcuts import render, redirect
-from django.core.mail import send_mail
-from django.conf import settings
-from django.views.decorators.csrf import csrf_protect
-from .models import GROUP, ind_clientDT, BROKERS
-import logging
-
-logger = logging.getLogger(__name__)
-
 @csrf_protect
 def client_registration(request):
     error = ""
@@ -1961,10 +1951,49 @@ def client_registration(request):
         c_last_date = request.POST['todate']
         password = request.POST['pwd']
         group_id = request.POST['group']
-        account_type = request.POST['Acount_type']
+        # account_type = request.POST['Acount_type']
+        account_type = request.POST.get('Account_type')
         broker_id = request.POST['Broker']
         api_key = request.POST['api_key']
+        secret_key = request.POST['secret_key']
+        
+        upstox_api_key = request.POST['api_key']
+        upstox_secret_key = request.POST['secret_key']
+        
+        five_paisa_api_key = request.POST['api_key']
+        five_paisa_user_id = request.POST['user_id']
+        five_paisa_secret_key = request.POST['secret_key']
+        app_id = request.POST['app_id']
+        user_id = request.POST['user_id']
         selected_strategies = request.POST.getlist('strategies')  # Get selected strategies
+        
+        # Initialize api_key_to_use with a default value
+        api_key_to_use = None
+        secret_key_to_use = None
+
+        if broker_id == 'Angel One':
+            api_key_to_use = 'api_key'
+            # Angel One specific logic
+
+        elif broker_id == 'Alice Blue':
+            user_id_to_use = 'user_id'
+            secret_key_to_use = 'secret_key'
+            # Alice Blue specific logic
+
+        elif broker_id == 'Upstox':
+            api_key_to_use = 'upstox_api_key'
+            secret_key_to_use = 'upstox_secret_key'
+            # Upstox specific logic
+
+        elif broker_id == '5Paisa':
+            api_key_to_use = 'five_paisa_api_key'
+            user_id_to_use = 'five_paisa_user_id'
+            secret_key_to_use = 'five_paisa_secret_key'
+            # 5Paisa specific logic
+
+        # You can now safely use api_key_to_use
+        if api_key_to_use is None:
+            raise ValueError("No API key found for the given broker")
 
         try:
             try:
@@ -1991,18 +2020,24 @@ def client_registration(request):
                     
                     subject = f'Dear {c_fname} {c_lname}'
                     message = f""" {c_fname} {c_lname}
-                    Thank you for choosing ANVESTORS for Algo Platform. We are pleased to inform you that the password of your
-                    Algo Platform has been reset as per details mentioned below:
+                    Thank you for choosing ANVESTORS as your Algo Platform. We are pleased to inform you that your password has been successfully reset. Please find the login details below:
 
-                    Login Details:
+                    **Login Details:**
 
-                    Email ID / User ID: {c_email}
-                    Login Password: {password}
+                    - **Email ID / User ID:** {c_email}
+                    - **Login Password:** {password}
 
-                    Note: Please change your login password as per your choice.
+                    **Important:** We strongly recommend that you change your login password to one of your choice at your earliest convenience.
 
-                    Login URL: http://software.anvestors.com
-                    """
+                    You can log in to your account using the following URL:
+                    [http://ai.anvestors.com](http://ai.anvestors.com)
+
+                    We appreciate your trust in ANVESTORS and are committed to providing you with the best service.
+
+                    Best regards,
+
+                    The ANVESTORS Team
+                        """
                     email_from = settings.EMAIL_HOST_USER
                     recipient_list = [c_email]
                     send_mail(subject, message, email_from, recipient_list)
@@ -2018,7 +2053,14 @@ def client_registration(request):
                         client_Group=Group,
                         clint_plane=account_type,
                         broker=Broker,
-                        api_key=api_key,
+                        # api_key=api_key,
+                        # secret_key=upstox_secret_key,
+                        
+                        api_key=api_key_to_use,
+                        secret_key=secret_key_to_use, 
+                        app_id=app_id,
+                        user_id=user_id_to_use,                
+                       
                     )
                  #   client.strategies.set(selected_strategies)
                     
@@ -4578,6 +4620,13 @@ def Reset_Password(request):
     return JsonResponse({'success': False, 'message': 'User not logged in.'})
 
 
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from django.core.mail import send_mail
+import logging
+
+logger = logging.getLogger(__name__)
+
 @require_POST
 def Accept_Terms(request):
     if 'clint_id' in request.session:
@@ -4590,20 +4639,51 @@ def Accept_Terms(request):
         if not client_user.Term_condition:
             client_user.Term_condition = True
             client_user.save()
-            # try:
-            #     subject = f'Dear {client_user.clint_name_first} {client_user.clint_name_last}'
-            #     message = "Thanks for Accepting the terms and conditions"
-            #     email_from = settings.EMAIL_HOST_USER
-            #     recipient_list = [client_user.clint_email]
-            #     send_mail(subject, message, email_from, recipient_list)
-            # except Exception as e:
-            #     logger.error(f"Error sending email: {str(e)}")
-            #     return JsonResponse({'success': False, 'message': 'Email not sent.'})
+            
+            try:
+                subject = f'Dear {client_user.clint_name_first} {client_user.clint_name_last},'
+                
+                message = (
+                    f"Dear {client_user.clint_name_first} {client_user.clint_name_last},\n\n"
+                    "We would like to inform you that all subscription fees paid to 'Anvestors.com' are non-refundable. "
+                    "Please note that we do not provide trading tips, nor are we investment advisors. Our service is "
+                    "solely limited to the development, deployment, and maintenance of automated trading applications.\n\n"
+                    
+                    "All our algorithms are based on backtested data, but we do not guarantee their performance in the future. "
+                    "The algorithm running in the automated system is agreed upon with the user prior to deployment, and we "
+                    "do not take any liability for any losses generated by it. Past performance of any advice, strategy, or model "
+                    "does not indicate future performance of any current or future strategy, model, or advice provided by 'Anvestors.com'.\n\n"
+                    
+                    "Trades and actual returns may differ significantly from those depicted due to various factors, including but not "
+                    "limited to impact costs, expenses charged, timing of entry/exit, timing of additional flows/redemptions, individual "
+                    "client mandates, specific portfolio construction characteristics, etc. There is no assurance or guarantee that the "
+                    "objectives of any strategy, model, or advice provided by 'Anvestors.com' will be achieved.\n\n"
+                    
+                    "'Anvestors.com', its partners, principal officers, and employees do not assure or guarantee any return on the investment "
+                    "in strategies, models, or advice given to the investor. The value of investments can fluctuate depending on various "
+                    "market factors and forces. 'Anvestors.com' or its associates are not liable or responsible for any loss or shortfall arising "
+                    "from operations affected by market conditions.\n\n"
+                    
+                    "Assuring you of our best services at all times.\n\n"
+                    
+                    "Best regards,\n"
+                    "The Anvestors.com Team"
+                )
+                
+                email_from = settings.EMAIL_HOST_USER
+                recipient_list = [client_user.clint_email]
+                send_mail(subject, message, email_from, recipient_list)
+                
+            except Exception as e:
+                logger.error(f"Error sending email: {str(e)}")
+                return JsonResponse({'success': False, 'message': 'Email not sent.'})
 
             return JsonResponse({'success': True})
+        
         return JsonResponse({'success': False, 'message': 'Terms already accepted.'})
 
     return JsonResponse({'success': False, 'message': 'User not logged in.'})
+
 
 from .models import ind_clientDT
 
